@@ -44,7 +44,7 @@ jobs:
       - name: Checkout frontend
         uses: actions/checkout@v5
         with:
-          repository: LuizReis-dev/community-kitchen
+          repository: Lucas-Cast/community-kitchen-portal
           path: frontend
 
       - name: Login no Docker Hub
