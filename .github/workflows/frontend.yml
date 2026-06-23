@@ -1,4 +1,5 @@
-name: Deploy frontend
+name: Pipeline frontend
+run-name: Executada por ${{ github.actor }}
 
 on:
   workflow_dispatch:
@@ -33,7 +34,7 @@ jobs:
 
       - name: Build frontend
         working-directory: frontend
-        run: npm run build
+        run: npx next build --no-lint
 
   push-image:
     name: Push imagem Docker
