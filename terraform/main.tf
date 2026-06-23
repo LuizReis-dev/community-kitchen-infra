@@ -30,3 +30,13 @@ output "ip_publico_vm" {
   description = "IP publico da VM"
   value       = module.compute.ip_publico_vm
 }
+
+output "ip_privado_frontend" {
+  description = "IP privado da VM do frontend"
+  value       = module.compute.ip_privado_frontend
+}
+
+output "ip_publico_gateway" {
+  description = "IP publico da VM do Kong Gateway"
+  value       = module.compute.ip_publico_gateway
+}

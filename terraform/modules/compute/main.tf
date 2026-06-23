@@ -64,9 +64,9 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-resource "aws_security_group" "frontend" {
-  name        = "${var.project_name}-sg"
-  description = "Permite acesso SSH e HTTP ao frontend"
+resource "aws_security_group" "gateway" {
+  name        = "${var.project_name}-gateway-sg"
+  description = "Permite acesso SSH e HTTP ao Kong Gateway"
   vpc_id      = aws_vpc.vpc.id
 
   ingress {
@@ -94,7 +94,41 @@ resource "aws_security_group" "frontend" {
   }
 
   tags = {
-    Name = "${var.project_name}-sg"
+    Name = "${var.project_name}-gateway-sg"
+  }
+}
+
+resource "aws_security_group" "frontend" {
+  name        = "${var.project_name}-frontend-sg"
+  description = "Permite acesso SSH publico e HTTP somente pelo gateway"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description     = "HTTP do Kong Gateway"
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.gateway.id]
+  }
+
+  egress {
+    description = "Todo trafego de saida"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-frontend-sg"
   }
 }
 
@@ -107,7 +141,7 @@ resource "aws_key_pair" "ssh" {
   }
 }
 
-resource "aws_instance" "vm" {
+resource "aws_instance" "frontend" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
   subnet_id                   = aws_subnet.subnet.id
@@ -134,17 +168,59 @@ resource "aws_instance" "vm" {
   }
 
   tags = {
-    Name = "${var.project_name}-vm"
+    Name = "${var.project_name}-frontend-vm"
   }
 }
 
-resource "aws_eip" "ip" {
+resource "aws_instance" "gateway" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.subnet.id
+  vpc_security_group_ids      = [aws_security_group.gateway.id]
+  key_name                    = aws_key_pair.ssh.key_name
+  associate_public_ip_address = true
+
+  user_data_replace_on_change = true
+  user_data                   = <<-EOF
+    #cloud-config
+    users:
+      - default
+      - name: ${var.admin_username}
+        groups: sudo
+        shell: /bin/bash
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        ssh_authorized_keys:
+          - ${trimspace(file(var.ssh_public_key_path))}
+  EOF
+
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name = "${var.project_name}-gateway-vm"
+  }
+}
+
+resource "aws_eip" "frontend" {
   domain   = "vpc"
-  instance = aws_instance.vm.id
+  instance = aws_instance.frontend.id
 
   depends_on = [aws_internet_gateway.igw]
 
   tags = {
-    Name = "${var.project_name}-ip"
+    Name = "${var.project_name}-frontend-ip"
+  }
+}
+
+resource "aws_eip" "gateway" {
+  domain   = "vpc"
+  instance = aws_instance.gateway.id
+
+  depends_on = [aws_internet_gateway.igw]
+
+  tags = {
+    Name = "${var.project_name}-gateway-ip"
   }
 }

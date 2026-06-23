@@ -1,0 +1,43 @@
+name: Pipeline gateway
+run-name: Executada por ${{ github.actor }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      kong_image:
+        description: Imagem Docker do Kong
+        required: true
+        default: kong:3
+
+jobs:
+  deploy:
+    name: Deploy Kong Gateway com Ansible
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Instalar Ansible
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ansible
+
+      - name: Configurar chave SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' '${{ secrets.VM_SSH_PRIVATE_KEY }}' | sed 's/\\n/\n/g' | tr -d '\r' > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null
+
+      - name: Configurar inventario do gateway
+        working-directory: ansible
+        run: |
+          sed -i "s/IP_GATEWAY/${{ secrets.IP_GATEWAY }}/g" hosts.ini
+          sed -i "s/IP_FRONTEND_PRIVATE/${{ secrets.IP_FRONTEND_PRIVATE }}/g" hosts.ini
+
+      - name: Executar deploy
+        working-directory: ansible
+        run: |
+          ansible-playbook playbooks/deploy-gateway.yml \
+            --extra-vars "kong_image=${{ inputs.kong_image }}"

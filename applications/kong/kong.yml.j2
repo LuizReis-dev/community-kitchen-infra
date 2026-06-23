@@ -1,0 +1,11 @@
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: frontend
+    url: http://{{ frontend_upstream_host }}:80
+    routes:
+      - name: frontend-root
+        paths:
+          - /
+        strip_path: false
