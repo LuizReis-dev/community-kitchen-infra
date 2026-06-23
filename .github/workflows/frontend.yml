@@ -32,10 +32,6 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Build frontend
-        working-directory: frontend
-        run: npx next build --no-lint
-
   push-image:
     name: Push imagem Docker
     runs-on: ubuntu-latest
