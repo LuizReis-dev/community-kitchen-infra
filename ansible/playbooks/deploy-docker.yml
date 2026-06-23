@@ -8,15 +8,17 @@
     container_name: "community-kitchen-frontend"
 
   tasks:
-    - name: Atualizar pacotes
+    - name: Atualizar cache de pacotes
       apt:
         update_cache: true
-        upgrade: yes
+        cache_valid_time: 3600
+        lock_timeout: 120
 
     - name: Instalar Docker
       apt:
         name: docker.io
         state: present
+        lock_timeout: 120
 
     - name: Iniciar Docker
       service:

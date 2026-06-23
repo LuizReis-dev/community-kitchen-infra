@@ -1,97 +1,150 @@
-resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-frontend"
-  address_space       = ["10.0.0.0/16"]
-  location            = var.location
-  resource_group_name = var.resource_group_name
-}
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"]
 
-resource "azurerm_subnet" "subnet" {
-  name                 = "subnet-frontend"
-  resource_group_name  = var.resource_group_name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
-
-resource "azurerm_public_ip" "ip" {
-  name                = "ip-frontend"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-}
-
-resource "azurerm_network_security_group" "nsg" {
-  name                = "nsg-frontend"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-
-  security_rule {
-    name                       = "Allow-SSH"
-    priority                   = 1001
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
   }
 
-  security_rule {
-    name                       = "Allow-HTTP"
-    priority                   = 1002
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
   }
 }
 
-resource "azurerm_network_interface" "nic" {
-  name                = "nic-frontend"
-  location            = var.location
-  resource_group_name = var.resource_group_name
+resource "aws_vpc" "vpc" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
-  ip_configuration {
-    name                          = "internal"
-    subnet_id                     = azurerm_subnet.subnet.id
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = azurerm_public_ip.ip.id
+  tags = {
+    Name = "${var.project_name}-vpc"
   }
 }
 
-resource "azurerm_network_interface_security_group_association" "nic_nsg" {
-  network_interface_id      = azurerm_network_interface.nic.id
-  network_security_group_id = azurerm_network_security_group.nsg.id
+resource "aws_subnet" "subnet" {
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = "10.0.1.0/24"
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "${var.project_name}-subnet"
+  }
 }
 
-resource "azurerm_linux_virtual_machine" "vm" {
-  name                = "vm-frontend"
-  resource_group_name = var.resource_group_name
-  location            = var.location
-  size                = var.vm_size
-  admin_username      = var.admin_username
-  network_interface_ids = [
-    azurerm_network_interface.nic.id,
-  ]
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.vpc.id
 
-  admin_ssh_key {
-    username   = var.admin_username
-    public_key = file(var.ssh_public_key_path)
+  tags = {
+    Name = "${var.project_name}-igw"
+  }
+}
+
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
   }
 
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS"
+  tags = {
+    Name = "${var.project_name}-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.subnet.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_security_group" "frontend" {
+  name        = "${var.project_name}-sg"
+  description = "Permite acesso SSH e HTTP ao frontend"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  source_image_reference {
-    publisher = "Canonical"
-    offer     = "0001-com-ubuntu-server-jammy"
-    sku       = "22_04-lts-gen2"
-    version   = "latest"
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Todo trafego de saida"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${var.project_name}-sg"
+  }
+}
+
+resource "aws_key_pair" "ssh" {
+  key_name   = "${var.project_name}-key"
+  public_key = file(var.ssh_public_key_path)
+
+  tags = {
+    Name = "${var.project_name}-key"
+  }
+}
+
+resource "aws_instance" "vm" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.subnet.id
+  vpc_security_group_ids      = [aws_security_group.frontend.id]
+  key_name                    = aws_key_pair.ssh.key_name
+  associate_public_ip_address = true
+
+  user_data_replace_on_change = true
+  user_data                   = <<-EOF
+    #cloud-config
+    users:
+      - default
+      - name: ${var.admin_username}
+        groups: sudo
+        shell: /bin/bash
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        ssh_authorized_keys:
+          - ${trimspace(file(var.ssh_public_key_path))}
+  EOF
+
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name = "${var.project_name}-vm"
+  }
+}
+
+resource "aws_eip" "ip" {
+  domain   = "vpc"
+  instance = aws_instance.vm.id
+
+  depends_on = [aws_internet_gateway.igw]
+
+  tags = {
+    Name = "${var.project_name}-ip"
   }
 }

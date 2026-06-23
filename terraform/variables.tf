@@ -1,13 +1,13 @@
-variable "resource_group_name" {
+variable "project_name" {
   type        = string
-  description = "Nome do resource group"
-  default     = "rg-frontend"
+  description = "Nome do projeto usado nas tags e nomes dos recursos"
+  default     = "community-kitchen-frontend"
 }
 
-variable "location" {
+variable "aws_region" {
   type        = string
-  description = "Regiao do Azure onde os recursos serao criados"
-  default     = "centralus"
+  description = "Regiao da AWS onde os recursos serao criados"
+  default     = "us-east-1"
 }
 
 variable "admin_username" {
@@ -22,23 +22,23 @@ variable "ssh_public_key_path" {
   default     = "~/.ssh/id_rsa.pub"
 }
 
-variable "vm_sizes" {
+variable "instance_types" {
   type        = list(string)
-  description = "Lista de tamanhos de VM disponiveis"
+  description = "Lista de tipos de instancia EC2 disponiveis"
   default = [
-    "Standard_D2s_v3",
-    "Standard_D2s_v3",
-    "Standard_D2as_v4",
+    "t3.nano",
+    "t3.micro",
+    "t3.small",
   ]
 }
 
-variable "vm_size_index" {
+variable "instance_type_index" {
   type        = number
-  description = "Indice da lista vm_sizes a ser usado"
+  description = "Indice da lista instance_types a ser usado"
   default     = 0
 
   validation {
-    condition     = var.vm_size_index >= 0 && var.vm_size_index < length(var.vm_sizes)
-    error_message = "vm_size_index deve apontar para um item existente em vm_sizes."
+    condition     = var.instance_type_index >= 0 && var.instance_type_index < length(var.instance_types)
+    error_message = "instance_type_index deve apontar para um item existente em instance_types."
   }
 }

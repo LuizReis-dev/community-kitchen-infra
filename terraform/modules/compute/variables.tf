@@ -1,11 +1,6 @@
-variable "resource_group_name" {
+variable "project_name" {
   type        = string
-  description = "Nome do resource group onde os recursos de compute serao criados"
-}
-
-variable "location" {
-  type        = string
-  description = "Regiao do Azure onde os recursos de compute serao criados"
+  description = "Nome do projeto usado nas tags e nomes dos recursos de compute"
 }
 
 variable "admin_username" {
@@ -18,7 +13,7 @@ variable "ssh_public_key_path" {
   description = "Caminho para a chave publica SSH"
 }
 
-variable "vm_size" {
+variable "instance_type" {
   type        = string
-  description = "Tamanho da VM"
+  description = "Tipo da instancia EC2"
 }

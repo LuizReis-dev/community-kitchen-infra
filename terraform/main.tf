@@ -1,30 +1,29 @@
 terraform {
   required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "=3.99.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
 
-provider "azurerm" {
-  features {}
-  skip_provider_registration = true
-}
+provider "aws" {
+  region = var.aws_region
 
-resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group_name
-  location = var.location
+  default_tags {
+    tags = {
+      Project = var.project_name
+    }
+  }
 }
 
 module "compute" {
   source = "./modules/compute"
 
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  project_name        = var.project_name
   admin_username      = var.admin_username
   ssh_public_key_path = var.ssh_public_key_path
-  vm_size             = var.vm_sizes[var.vm_size_index]
+  instance_type       = var.instance_types[var.instance_type_index]
 }
 
 output "ip_publico_vm" {
