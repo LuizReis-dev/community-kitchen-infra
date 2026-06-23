@@ -1,0 +1,40 @@
+---
+- name: Rodar frontend no Docker
+  hosts: frontend
+  become: true
+
+  vars:
+    frontend_image: "reisluiz/community-kitchen-frontend:latest"
+    container_name: "community-kitchen-frontend"
+
+  tasks:
+    - name: Atualizar pacotes
+      apt:
+        update_cache: true
+        upgrade: yes
+
+    - name: Instalar Docker
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Iniciar Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Baixar imagem do frontend
+      command: "docker pull {{ frontend_image }}"
+
+    - name: Remover container antigo
+      command: "docker rm -f {{ container_name }}"
+      ignore_errors: true
+
+    - name: Rodar frontend
+      command: >
+        docker run -d
+        --name {{ container_name }}
+        --restart unless-stopped
+        -p 80:5000
+        {{ frontend_image }}
