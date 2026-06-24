@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: community-kitchen-api
+  namespace: homolog
+  labels:
+    app: community-kitchen-api
+    environment: homolog
+spec:
+  type: ClusterIP
+  selector:
+    app: community-kitchen-api
+    environment: homolog
+  ports:
+    - name: http
+      port: 80
+      targetPort: 3000
+      protocol: TCP

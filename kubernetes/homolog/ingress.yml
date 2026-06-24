@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: community-kitchen-api-ingress
+  namespace: homolog
+spec:
+  ingressClassName: traefik
+  rules:
+    - http:
+        paths:
+          - path: /homolog/api
+            pathType: Prefix
+            backend:
+              service:
+                name: community-kitchen-api
+                port:
+                  number: 80
