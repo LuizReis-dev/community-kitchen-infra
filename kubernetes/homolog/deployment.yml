@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-kitchen-api
+  namespace: homolog
+  labels:
+    app: community-kitchen-api
+    part-of: community-kitchen
+    environment: homolog
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: community-kitchen-api
+      environment: homolog
+  template:
+    metadata:
+      labels:
+        app: community-kitchen-api
+        part-of: community-kitchen
+        environment: homolog
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - homolog
+      containers:
+        - name: api
+          image: reisluiz/community-kitchen-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: homolog
+            - name: PORT
+              value: "3000"

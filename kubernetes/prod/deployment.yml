@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community-kitchen-api
+  namespace: prod
+  labels:
+    app: community-kitchen-api
+    part-of: community-kitchen
+    environment: prod
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: community-kitchen-api
+      environment: prod
+  template:
+    metadata:
+      labels:
+        app: community-kitchen-api
+        part-of: community-kitchen
+        environment: prod
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - prod
+      containers:
+        - name: api
+          image: reisluiz/community-kitchen-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "3000"
