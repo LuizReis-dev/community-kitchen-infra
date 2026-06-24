@@ -4,7 +4,7 @@ metadata:
   name: community-kitchen-api-ingress
   namespace: homolog
 spec:
-  ingressClassName: traefik
+  ingressClassName: kong
   rules:
     - http:
         paths:
