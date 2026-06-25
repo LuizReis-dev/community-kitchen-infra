@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: community-kitchen-api-ingress
   namespace: homolog
+  annotations:
+    konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong
   rules:
