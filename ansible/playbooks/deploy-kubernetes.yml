@@ -1,0 +1,64 @@
+---
+- name: Aplicar manifests Kubernetes da aplicacao
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubernetes_dir: "{{ playbook_dir }}/../../kubernetes"
+    deploy_environment: "all"
+    api_container_name: "api"
+    api_deployment_name: "community-kitchen-api"
+    api_image: ""
+
+  tasks:
+    - name: Validar ambiente de deploy
+      assert:
+        that:
+          - deploy_environment in ["all", "prod", "homolog"]
+        fail_msg: "deploy_environment deve ser all, prod ou homolog."
+
+    - name: Aplicar namespaces
+      command: kubectl apply -f {{ kubernetes_dir }}/namespace.yml
+
+    - name: Aplicar manifests de prod
+      command: kubectl apply -f {{ kubernetes_dir }}/prod
+      when: deploy_environment in ["all", "prod"]
+
+    - name: Aplicar manifests do banco de prod
+      command: kubectl apply -f {{ kubernetes_dir }}/prod/database
+      when: deploy_environment in ["all", "prod"]
+
+    - name: Aplicar manifests de homolog
+      command: kubectl apply -f {{ kubernetes_dir }}/homolog
+      when: deploy_environment in ["all", "homolog"]
+
+    - name: Aplicar manifests do banco de homolog
+      command: kubectl apply -f {{ kubernetes_dir }}/homolog/database
+      when: deploy_environment in ["all", "homolog"]
+
+    - name: Atualizar imagem da API em prod
+      command: >
+        kubectl set image deployment/{{ api_deployment_name }}
+        {{ api_container_name }}={{ api_image }}
+        --namespace prod
+      when:
+        - api_image | length > 0
+        - deploy_environment in ["all", "prod"]
+
+    - name: Atualizar imagem da API em homolog
+      command: >
+        kubectl set image deployment/{{ api_deployment_name }}
+        {{ api_container_name }}={{ api_image }}
+        --namespace homolog
+      when:
+        - api_image | length > 0
+        - deploy_environment in ["all", "homolog"]
+
+    - name: Aguardar rollout de prod
+      command: kubectl rollout status deployment/{{ api_deployment_name }} --namespace prod --timeout=180s
+      when: deploy_environment in ["all", "prod"]
+
+    - name: Aguardar rollout de homolog
+      command: kubectl rollout status deployment/{{ api_deployment_name }} --namespace homolog --timeout=180s
+      when: deploy_environment in ["all", "homolog"]

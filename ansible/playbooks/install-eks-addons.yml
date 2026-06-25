@@ -1,0 +1,37 @@
+---
+- name: Instalar addons basicos do EKS
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Adicionar repositorio Helm do Kong
+      command: helm repo add kong https://charts.konghq.com
+      register: kong_repo
+      changed_when: "'has been added' in kong_repo.stdout"
+      failed_when:
+        - kong_repo.rc != 0
+        - "'already exists' not in kong_repo.stderr"
+
+    - name: Adicionar repositorio Helm do Metrics Server
+      command: helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+      register: metrics_repo
+      changed_when: "'has been added' in metrics_repo.stdout"
+      failed_when:
+        - metrics_repo.rc != 0
+        - "'already exists' not in metrics_repo.stderr"
+
+    - name: Atualizar repositorios Helm
+      command: helm repo update
+      changed_when: false
+
+    - name: Instalar Kong Ingress Controller
+      command: >
+        helm upgrade --install kong kong/ingress
+        --namespace kong
+        --create-namespace
+
+    - name: Instalar Metrics Server
+      command: >
+        helm upgrade --install metrics-server metrics-server/metrics-server
+        --namespace kube-system
