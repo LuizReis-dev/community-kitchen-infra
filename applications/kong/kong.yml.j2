@@ -2,6 +2,19 @@ _format_version: "3.0"
 _transform: true
 
 services:
+  - name: api
+    url: http://{{ api_upstream_host }}:80
+    routes:
+      - name: api-prod
+        paths:
+          - /api
+        strip_path: false
+
+      - name: api-homolog
+        paths:
+          - /homolog/api
+        strip_path: false
+
   - name: frontend
     url: http://{{ frontend_upstream_host }}:80
     routes:
