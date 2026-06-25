@@ -126,11 +126,11 @@ jobs:
         run: python -m pip install ansible
 
       - name: Instalar addons do EKS
-        working-directory: /ansible
+        working-directory: ansible
         run: ansible-playbook playbooks/install-eks-addons.yml
 
       - name: Deploy no Kubernetes com Ansible
-        working-directory: /ansible
+        working-directory: ansible
         run: >
           ansible-playbook playbooks/deploy-kubernetes.yml
           -e deploy_environment=${{ env.DEPLOY_ENVIRONMENT }}
