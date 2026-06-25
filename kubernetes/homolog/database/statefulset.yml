@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: community-kitchen-postgres
+  namespace: homolog
+  labels:
+    app: community-kitchen-postgres
+    environment: homolog
+spec:
+  serviceName: community-kitchen-postgres-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: community-kitchen-postgres
+      environment: homolog
+  template:
+    metadata:
+      labels:
+        app: community-kitchen-postgres
+        environment: homolog
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: environment
+                    operator: In
+                    values:
+                      - homolog
+      containers:
+        - name: postgres
+          image: postgres:17.4-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: postgres
+              containerPort: 5432
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: community-kitchen-postgres-secret
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 250m
+              memory: 512Mi
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi

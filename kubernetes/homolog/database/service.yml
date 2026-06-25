@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: community-kitchen-postgres-headless
+  namespace: homolog
+  labels:
+    app: community-kitchen-postgres
+    environment: homolog
+spec:
+  clusterIP: None
+  selector:
+    app: community-kitchen-postgres
+    environment: homolog
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: community-kitchen-postgres-read
+  namespace: homolog
+  labels:
+    app: community-kitchen-postgres
+    environment: homolog
+spec:
+  type: ClusterIP
+  selector:
+    app: community-kitchen-postgres
+    environment: homolog
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
