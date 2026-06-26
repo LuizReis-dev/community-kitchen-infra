@@ -38,6 +38,9 @@ jobs:
           IP_FRONTEND_HOMOLOG_PRIVATE: ${{ secrets.IP_FRONTEND_HOMOLOG_PRIVATE }}
           API_UPSTREAM_HOST: ${{ secrets.API_UPSTREAM_HOST }}
         run: |
+          : "${IP_GATEWAY:?Secret IP_GATEWAY nao configurado}"
+          : "${IP_FRONTEND_PROD_PRIVATE:?Secret IP_FRONTEND_PROD_PRIVATE nao configurado}"
+          : "${API_UPSTREAM_HOST:?Secret API_UPSTREAM_HOST nao configurado}"
           perl -0pi -e 's/IP_GATEWAY/$ENV{IP_GATEWAY}/g' hosts.ini
           perl -0pi -e 's/IP_FRONTEND_PROD_PRIVATE/$ENV{IP_FRONTEND_PROD_PRIVATE}/g' hosts.ini
           perl -0pi -e 's/IP_FRONTEND_HOMOLOG_PRIVATE/$ENV{IP_FRONTEND_HOMOLOG_PRIVATE}/g' hosts.ini

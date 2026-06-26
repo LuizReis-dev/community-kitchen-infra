@@ -23,4 +23,4 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 5000
 
-CMD ["npm", "run", "start", "--", "--port", "5000"]
+CMD ["npm", "run", "start", "--", "--hostname", "0.0.0.0", "--port", "5000"]

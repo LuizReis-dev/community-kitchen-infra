@@ -1,9 +1,22 @@
 _format_version: "3.0"
 _transform: true
 
+{% set api_url = api_upstream_host | trim %}
+{% if not (api_url | regex_search('^https?://')) %}
+{% set api_url = 'http://' ~ api_url ~ ':80' %}
+{% endif %}
+{% set frontend_url = frontend_upstream_host | trim %}
+{% if not (frontend_url | regex_search('^https?://')) %}
+{% set frontend_url = 'http://' ~ frontend_url ~ ':80' %}
+{% endif %}
+{% set frontend_homolog_url = frontend_homolog_upstream_host | default('') | trim %}
+{% if frontend_homolog_url and not (frontend_homolog_url | regex_search('^https?://')) %}
+{% set frontend_homolog_url = 'http://' ~ frontend_homolog_url ~ ':80' %}
+{% endif %}
+
 services:
   - name: api
-    url: http://{{ api_upstream_host }}:80
+    url: "{{ api_url | regex_replace('/+$', '') }}"
     routes:
       - name: api-prod
         paths:
@@ -16,17 +29,19 @@ services:
         strip_path: false
 
   - name: frontend
-    url: http://{{ frontend_upstream_host }}:80
+    url: "{{ frontend_url | regex_replace('/+$', '') }}"
     routes:
       - name: frontend-root
         paths:
           - /
         strip_path: false
 
+{% if frontend_homolog_url %}
   - name: frontend-homolog
-    url: http://{{ frontend_homolog_upstream_host }}:80
+    url: "{{ frontend_homolog_url | regex_replace('/+$', '') }}"
     routes:
       - name: frontend-homolog-root
         paths:
           - /homolog
         strip_path: false
+{% endif %}
