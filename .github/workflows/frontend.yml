@@ -54,9 +54,17 @@ jobs:
             --password-stdin
 
       - name: Build da imagem Docker
+        env:
+          NEXT_PUBLIC_CK_API_URI: http://${{ secrets.IP_GATEWAY }}/api/
+          NEXT_PUBLIC_USER_CONTROLLER_API_URI: ${{ secrets.USER_CONTROLLER_API_URI }}
         run: |
+          : "${NEXT_PUBLIC_CK_API_URI:?Secret IP_GATEWAY nao configurado}"
+          : "${NEXT_PUBLIC_USER_CONTROLLER_API_URI:?Secret USER_CONTROLLER_API_URI nao configurado}"
+
           docker build \
             -f applications/frontend/Dockerfile \
+            --build-arg NEXT_PUBLIC_CK_API_URI="$NEXT_PUBLIC_CK_API_URI" \
+            --build-arg NEXT_PUBLIC_USER_CONTROLLER_API_URI="$NEXT_PUBLIC_USER_CONTROLLER_API_URI" \
             -t "${{ inputs.frontend_image }}" \
             frontend
 

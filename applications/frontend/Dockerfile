@@ -29,13 +29,10 @@ ENV NODE_ENV=production
 ENV PORT=5000
 ENV HOSTNAME=0.0.0.0
 
-COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
-
-COPY . .
-COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/static ./.next/static
 
 EXPOSE 5000
 
-CMD ["npm", "run", "start", "--", "-p", "5000", "-H", "0.0.0.0"]
+CMD ["node", "server.js"]
