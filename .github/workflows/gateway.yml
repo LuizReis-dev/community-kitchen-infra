@@ -32,10 +32,17 @@ jobs:
 
       - name: Configurar inventario do gateway
         working-directory: ansible
+        env:
+          IP_GATEWAY: ${{ secrets.IP_GATEWAY }}
+          IP_FRONTEND_PRIVATE: ${{ secrets.IP_FRONTEND_PRIVATE }}
+          API_UPSTREAM_HOST: ${{ secrets.API_UPSTREAM_HOST }}
         run: |
-          sed -i "s/IP_GATEWAY/${{ secrets.IP_GATEWAY }}/g" hosts.ini
-          sed -i "s/IP_FRONTEND_PRIVATE/${{ secrets.IP_FRONTEND_PRIVATE }}/g" hosts.ini
-          sed -i "s/API_UPSTREAM_HOST/${{ secrets.API_UPSTREAM_HOST }}/g" hosts.ini
+          : "${IP_GATEWAY:?Secret IP_GATEWAY nao configurado}"
+          : "${IP_FRONTEND_PRIVATE:?Secret IP_FRONTEND_PRIVATE nao configurado}"
+          : "${API_UPSTREAM_HOST:?Secret API_UPSTREAM_HOST nao configurado}"
+          perl -0pi -e 's/IP_GATEWAY/$ENV{IP_GATEWAY}/g' hosts.ini
+          perl -0pi -e 's/IP_FRONTEND_PRIVATE/$ENV{IP_FRONTEND_PRIVATE}/g' hosts.ini
+          perl -0pi -e 's/API_UPSTREAM_HOST/$ENV{API_UPSTREAM_HOST}/g' hosts.ini
 
       - name: Executar deploy
         working-directory: ansible
