@@ -3,7 +3,7 @@ _transform: true
 
 services:
   - name: api
-    url: http://{{ api_upstream_host }}:80
+    url: "{{ api_upstream_host if api_upstream_host is match('^https?://') else 'http://' ~ api_upstream_host ~ ':80' }}"
     routes:
       - name: api-prod
         paths:
@@ -16,9 +16,9 @@ services:
         strip_path: false
 
   - name: frontend
-    url: http://{{ frontend_upstream_host }}:80
+    url: "{{ frontend_upstream_host if frontend_upstream_host is match('^https?://') else 'http://' ~ frontend_upstream_host ~ ':80' }}"
     routes:
       - name: frontend-root
         paths:
-          - ~/(?!api(?:/|$)|homolog/api(?:/|$)).*
+          - /
         strip_path: false
