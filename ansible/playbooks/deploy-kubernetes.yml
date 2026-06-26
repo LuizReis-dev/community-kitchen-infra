@@ -16,8 +16,8 @@
     - name: Validar ambiente de deploy
       assert:
         that:
-          - deploy_environment in ["all", "prod", "homolog"]
-        fail_msg: "deploy_environment deve ser all, prod ou homolog."
+          - deploy_environment in ["all", "prod"]
+        fail_msg: "deploy_environment deve ser all ou prod."
 
     - name: Aplicar namespaces
       command: kubectl apply -f {{ kubernetes_dir }}/namespace.yml
@@ -30,13 +30,14 @@
       command: kubectl apply -f {{ kubernetes_dir }}/prod/database
       when: deploy_environment in ["all", "prod"]
 
-    - name: Aplicar manifests de homolog
-      command: kubectl apply -f {{ kubernetes_dir }}/homolog
-      when: deploy_environment in ["all", "homolog"]
-
-    - name: Aplicar manifests do banco de homolog
-      command: kubectl apply -f {{ kubernetes_dir }}/homolog/database
-      when: deploy_environment in ["all", "homolog"]
+    # homolog desativado temporariamente.
+    # - name: Aplicar manifests de homolog
+    #   command: kubectl apply -f {{ kubernetes_dir }}/homolog
+    #   when: deploy_environment in ["all", "homolog"]
+    #
+    # - name: Aplicar manifests do banco de homolog
+    #   command: kubectl apply -f {{ kubernetes_dir }}/homolog/database
+    #   when: deploy_environment in ["all", "homolog"]
 
     - name: Atualizar imagem da API em prod
       command: >
@@ -47,11 +48,12 @@
         - api_image | length > 0
         - deploy_environment in ["all", "prod"]
 
-    - name: Atualizar imagem da API em homolog
-      command: >
-        kubectl set image deployment/{{ api_deployment_name }}
-        {{ api_container_name }}={{ api_image }}
-        --namespace homolog
-      when:
-        - api_image | length > 0
-        - deploy_environment in ["all", "homolog"]
+    # homolog desativado temporariamente.
+    # - name: Atualizar imagem da API em homolog
+    #   command: >
+    #     kubectl set image deployment/{{ api_deployment_name }}
+    #     {{ api_container_name }}={{ api_image }}
+    #     --namespace homolog
+    #   when:
+    #     - api_image | length > 0
+    #     - deploy_environment in ["all", "homolog"]

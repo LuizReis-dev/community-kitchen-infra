@@ -43,17 +43,18 @@ variable "prod_node_max_size" {
   description = "Quantidade maxima de nodes de prod"
 }
 
-variable "homolog_node_desired_size" {
-  type        = number
-  description = "Quantidade desejada de nodes de homolog"
-}
-
-variable "homolog_node_min_size" {
-  type        = number
-  description = "Quantidade minima de nodes de homolog"
-}
-
-variable "homolog_node_max_size" {
-  type        = number
-  description = "Quantidade maxima de nodes de homolog"
-}
+# homolog desativado temporariamente.
+# variable "homolog_node_desired_size" {
+#   type        = number
+#   description = "Quantidade desejada de nodes de homolog"
+# }
+#
+# variable "homolog_node_min_size" {
+#   type        = number
+#   description = "Quantidade minima de nodes de homolog"
+# }
+#
+# variable "homolog_node_max_size" {
+#   type        = number
+#   description = "Quantidade maxima de nodes de homolog"
+# }

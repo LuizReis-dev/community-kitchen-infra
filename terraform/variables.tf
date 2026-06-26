@@ -94,20 +94,21 @@ variable "eks_prod_node_max_size" {
   default     = 2
 }
 
-variable "eks_homolog_node_desired_size" {
-  type        = number
-  description = "Quantidade desejada de nodes no node group de homolog"
-  default     = 1
-}
-
-variable "eks_homolog_node_min_size" {
-  type        = number
-  description = "Quantidade minima de nodes no node group de homolog"
-  default     = 1
-}
-
-variable "eks_homolog_node_max_size" {
-  type        = number
-  description = "Quantidade maxima de nodes no node group de homolog"
-  default     = 2
-}
+# homolog desativado temporariamente.
+# variable "eks_homolog_node_desired_size" {
+#   type        = number
+#   description = "Quantidade desejada de nodes no node group de homolog"
+#   default     = 1
+# }
+#
+# variable "eks_homolog_node_min_size" {
+#   type        = number
+#   description = "Quantidade minima de nodes no node group de homolog"
+#   default     = 1
+# }
+#
+# variable "eks_homolog_node_max_size" {
+#   type        = number
+#   description = "Quantidade maxima de nodes no node group de homolog"
+#   default     = 2
+# }
