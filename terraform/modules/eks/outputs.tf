@@ -23,7 +23,8 @@ output "prod_node_group_name" {
   value       = aws_eks_node_group.prod.node_group_name
 }
 
-output "homolog_node_group_name" {
-  description = "Nome do node group de homolog"
-  value       = aws_eks_node_group.homolog.node_group_name
-}
+# homolog desativado - ver modules/eks/main.tf
+# output "homolog_node_group_name" {
+#   description = "Nome do node group de homolog"
+#   value       = aws_eks_node_group.homolog.node_group_name
+# }

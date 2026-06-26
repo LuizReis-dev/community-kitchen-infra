@@ -90,16 +90,17 @@ jobs:
           sed -i "s/IP_FRONTEND_PROD/${{ secrets.IP_FRONTEND_PROD }}/g" hosts.ini
           sed -i "s/IP_FRONTEND_HOMOLOG/${{ secrets.IP_FRONTEND_HOMOLOG }}/g" hosts.ini
 
-      - name: Deploy do frontend de homolog
-        working-directory: ansible
-        run: |
-          ansible-playbook playbooks/deploy-frontend.yml \
-            --limit frontend_homolog \
-            --extra-vars "frontend_image=${{ inputs.frontend_image }} gateway_public_ip=${{ secrets.IP_GATEWAY }}"
+      # homolog desativado temporariamente - conta no limite de 8 vCPU.
+      # - name: Deploy do frontend de homolog
+      #   working-directory: ansible
+      #   run: |
+      #     ansible-playbook playbooks/deploy-frontend.yml \
+      #       --limit frontend_homolog \
+      #       --extra-vars "frontend_image=${{ inputs.frontend_image }} gateway_public_ip=${{ secrets.IP_GATEWAY }} user_controller_api_uri=${{ secrets.USER_CONTROLLER_API_URI }}"
 
       - name: Deploy do frontend de prod
         working-directory: ansible
         run: |
           ansible-playbook playbooks/deploy-frontend.yml \
             --limit frontend_prod \
-            --extra-vars "frontend_image=${{ inputs.frontend_image }} gateway_public_ip=${{ secrets.IP_GATEWAY }}"
+            --extra-vars "frontend_image=${{ inputs.frontend_image }} gateway_public_ip=${{ secrets.IP_GATEWAY }} user_controller_api_uri=${{ secrets.USER_CONTROLLER_API_URI }}"

@@ -135,3 +135,4 @@ jobs:
           ansible-playbook playbooks/deploy-kubernetes.yml
           -e deploy_environment=${{ env.DEPLOY_ENVIRONMENT }}
           -e api_image=${{ secrets.DOCKERHUB_USERNAME }}/${{ env.API_IMAGE_NAME }}:${{ github.sha }}
+          -e remote_token_validator_url=${{ secrets.REMOTE_TOKEN_VALIDATOR_URL }}

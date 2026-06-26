@@ -158,31 +158,33 @@ resource "aws_eks_node_group" "prod" {
   }
 }
 
-resource "aws_eks_node_group" "homolog" {
-  cluster_name    = aws_eks_cluster.this.name
-  node_group_name = "${var.cluster_name}-homolog"
-  node_role_arn   = aws_iam_role.node.arn
-  subnet_ids      = aws_subnet.public[*].id
-  instance_types  = var.node_instance_types
-
-  labels = {
-    environment = "homolog"
-  }
-
-  scaling_config {
-    desired_size = var.homolog_node_desired_size
-    min_size     = var.homolog_node_min_size
-    max_size     = var.homolog_node_max_size
-  }
-
-  depends_on = [
-    aws_iam_role_policy_attachment.node_worker_policy,
-    aws_iam_role_policy_attachment.node_cni_policy,
-    aws_iam_role_policy_attachment.node_registry_policy,
-  ]
-
-  tags = {
-    Name        = "${var.cluster_name}-homolog"
-    Environment = "homolog"
-  }
-}
+# NOTE: homolog desativado temporariamente - conta no limite de 8 vCPU On-Demand.
+# Mantendo apenas prod. Descomentar quando a quota for aumentada.
+# resource "aws_eks_node_group" "homolog" {
+#   cluster_name    = aws_eks_cluster.this.name
+#   node_group_name = "${var.cluster_name}-homolog"
+#   node_role_arn   = aws_iam_role.node.arn
+#   subnet_ids      = aws_subnet.public[*].id
+#   instance_types  = var.node_instance_types
+#
+#   labels = {
+#     environment = "homolog"
+#   }
+#
+#   scaling_config {
+#     desired_size = var.homolog_node_desired_size
+#     min_size     = var.homolog_node_min_size
+#     max_size     = var.homolog_node_max_size
+#   }
+#
+#   depends_on = [
+#     aws_iam_role_policy_attachment.node_worker_policy,
+#     aws_iam_role_policy_attachment.node_cni_policy,
+#     aws_iam_role_policy_attachment.node_registry_policy,
+#   ]
+#
+#   tags = {
+#     Name        = "${var.cluster_name}-homolog"
+#     Environment = "homolog"
+#   }
+# }

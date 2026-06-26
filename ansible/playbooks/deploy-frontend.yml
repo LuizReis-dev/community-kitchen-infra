@@ -10,6 +10,9 @@
     # URL base da API, sempre passando pelo gateway. Montada a partir do
     # IP publico do gateway (gateway_public_ip) e da rota do ambiente (ck_api_path).
     ck_api_uri: "http://{{ gateway_public_ip }}{{ ck_api_path }}/"
+    # URL do servico de controle de usuarios (autenticacao). Vem do secret do
+    # GitHub; cai no gateway caso nao seja informada.
+    user_controller_api_uri: "{{ ck_api_uri }}"
 
   tasks:
     - name: Atualizar cache de pacotes
@@ -46,7 +49,7 @@
         mode: "0644"
         content: |
           NEXT_PUBLIC_CK_API_URI={{ ck_api_uri }}
-          NEXT_PUBLIC_USER_CONTROLLER_API_URI={{ ck_api_uri }}
+          NEXT_PUBLIC_USER_CONTROLLER_API_URI={{ user_controller_api_uri }}
 
     - name: Baixar imagem do frontend
       command: "docker pull {{ frontend_image }}"

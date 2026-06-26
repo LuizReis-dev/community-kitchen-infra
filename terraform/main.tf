@@ -29,18 +29,19 @@ module "compute" {
 module "eks" {
   source = "./modules/eks"
 
-  project_name              = var.project_name
-  cluster_name              = var.eks_cluster_name
-  cluster_version           = var.eks_cluster_version
-  vpc_cidr                  = var.eks_vpc_cidr
-  public_subnet_cidrs       = var.eks_public_subnet_cidrs
-  node_instance_types       = var.eks_node_instance_types
-  prod_node_desired_size    = var.eks_prod_node_desired_size
-  prod_node_min_size        = var.eks_prod_node_min_size
-  prod_node_max_size        = var.eks_prod_node_max_size
-  homolog_node_desired_size = var.eks_homolog_node_desired_size
-  homolog_node_min_size     = var.eks_homolog_node_min_size
-  homolog_node_max_size     = var.eks_homolog_node_max_size
+  project_name           = var.project_name
+  cluster_name           = var.eks_cluster_name
+  cluster_version        = var.eks_cluster_version
+  vpc_cidr               = var.eks_vpc_cidr
+  public_subnet_cidrs    = var.eks_public_subnet_cidrs
+  node_instance_types    = var.eks_node_instance_types
+  prod_node_desired_size = var.eks_prod_node_desired_size
+  prod_node_min_size     = var.eks_prod_node_min_size
+  prod_node_max_size     = var.eks_prod_node_max_size
+  # homolog desativado temporariamente - conta no limite de 8 vCPU.
+  # homolog_node_desired_size = var.eks_homolog_node_desired_size
+  # homolog_node_min_size     = var.eks_homolog_node_min_size
+  # homolog_node_max_size     = var.eks_homolog_node_max_size
 }
 
 output "ip_publico_vm" {
@@ -53,15 +54,16 @@ output "ip_privado_frontend" {
   value       = module.compute.ip_privado_frontend
 }
 
-output "ip_publico_frontend_homolog" {
-  description = "IP publico da VM do frontend de homolog"
-  value       = module.compute.ip_publico_frontend_homolog
-}
-
-output "ip_privado_frontend_homolog" {
-  description = "IP privado da VM do frontend de homolog"
-  value       = module.compute.ip_privado_frontend_homolog
-}
+# homolog desativado - ver modules/compute/main.tf
+# output "ip_publico_frontend_homolog" {
+#   description = "IP publico da VM do frontend de homolog"
+#   value       = module.compute.ip_publico_frontend_homolog
+# }
+#
+# output "ip_privado_frontend_homolog" {
+#   description = "IP privado da VM do frontend de homolog"
+#   value       = module.compute.ip_privado_frontend_homolog
+# }
 
 output "ip_publico_gateway" {
   description = "IP publico da VM do Kong Gateway"
@@ -93,7 +95,8 @@ output "eks_prod_node_group_name" {
   value       = module.eks.prod_node_group_name
 }
 
-output "eks_homolog_node_group_name" {
-  description = "Nome do node group de homolog do EKS"
-  value       = module.eks.homolog_node_group_name
-}
+# homolog desativado - ver modules/eks/main.tf
+# output "eks_homolog_node_group_name" {
+#   description = "Nome do node group de homolog do EKS"
+#   value       = module.eks.homolog_node_group_name
+# }

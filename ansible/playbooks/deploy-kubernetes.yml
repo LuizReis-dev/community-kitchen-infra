@@ -9,7 +9,9 @@
     deploy_environment: "all"
     api_container_name: "api"
     api_deployment_name: "community-kitchen-api"
+    api_secret_name: "community-kitchen-api-secret"
     api_image: ""
+    remote_token_validator_url: ""
     rollout_timeout: "600s"
 
   tasks:
@@ -22,6 +24,29 @@
     - name: Aplicar namespaces
       command: kubectl apply -f {{ kubernetes_dir }}/namespace.yml
 
+    - name: Validar URL do validador de token
+      assert:
+        that:
+          - remote_token_validator_url | length > 0
+        fail_msg: "remote_token_validator_url e obrigatorio (configure o secret REMOTE_TOKEN_VALIDATOR_URL no GitHub)."
+
+    - name: Aplicar secret da API em prod
+      shell: >
+        kubectl create secret generic {{ api_secret_name }}
+        --namespace prod
+        --from-literal=REMOTE_TOKEN_VALIDATOR_URL='{{ remote_token_validator_url }}'
+        --dry-run=client -o yaml | kubectl apply -f -
+      when: deploy_environment in ["all", "prod"]
+
+    # homolog desativado temporariamente - conta no limite de 8 vCPU.
+    # - name: Aplicar secret da API em homolog
+    #   shell: >
+    #     kubectl create secret generic {{ api_secret_name }}
+    #     --namespace homolog
+    #     --from-literal=REMOTE_TOKEN_VALIDATOR_URL='{{ remote_token_validator_url }}'
+    #     --dry-run=client -o yaml | kubectl apply -f -
+    #   when: deploy_environment in ["all", "homolog"]
+
     - name: Aplicar manifests de prod
       command: kubectl apply -f {{ kubernetes_dir }}/prod
       when: deploy_environment in ["all", "prod"]
@@ -30,13 +55,14 @@
       command: kubectl apply -f {{ kubernetes_dir }}/prod/database
       when: deploy_environment in ["all", "prod"]
 
-    - name: Aplicar manifests de homolog
-      command: kubectl apply -f {{ kubernetes_dir }}/homolog
-      when: deploy_environment in ["all", "homolog"]
-
-    - name: Aplicar manifests do banco de homolog
-      command: kubectl apply -f {{ kubernetes_dir }}/homolog/database
-      when: deploy_environment in ["all", "homolog"]
+    # homolog desativado temporariamente - conta no limite de 8 vCPU.
+    # - name: Aplicar manifests de homolog
+    #   command: kubectl apply -f {{ kubernetes_dir }}/homolog
+    #   when: deploy_environment in ["all", "homolog"]
+    #
+    # - name: Aplicar manifests do banco de homolog
+    #   command: kubectl apply -f {{ kubernetes_dir }}/homolog/database
+    #   when: deploy_environment in ["all", "homolog"]
 
     - name: Atualizar imagem da API em prod
       command: >
@@ -47,11 +73,12 @@
         - api_image | length > 0
         - deploy_environment in ["all", "prod"]
 
-    - name: Atualizar imagem da API em homolog
-      command: >
-        kubectl set image deployment/{{ api_deployment_name }}
-        {{ api_container_name }}={{ api_image }}
-        --namespace homolog
-      when:
-        - api_image | length > 0
-        - deploy_environment in ["all", "homolog"]
+    # homolog desativado temporariamente - conta no limite de 8 vCPU.
+    # - name: Atualizar imagem da API em homolog
+    #   command: >
+    #     kubectl set image deployment/{{ api_deployment_name }}
+    #     {{ api_container_name }}={{ api_image }}
+    #     --namespace homolog
+    #   when:
+    #     - api_image | length > 0
+    #     - deploy_environment in ["all", "homolog"]
