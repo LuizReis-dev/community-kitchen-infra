@@ -55,11 +55,15 @@ jobs:
 
       - name: Build da imagem Docker
         env:
-          NEXT_PUBLIC_CK_API_URI: http://${{ secrets.IP_GATEWAY }}/api/
-          NEXT_PUBLIC_USER_CONTROLLER_API_URI: ${{ secrets.USER_CONTROLLER_API_URI }}
+          IP_GATEWAY: ${{ secrets.IP_GATEWAY }}
+          USER_CONTROLLER_API_URI: ${{ secrets.USER_CONTROLLER_API_URI }}
         run: |
-          : "${NEXT_PUBLIC_CK_API_URI:?Secret IP_GATEWAY nao configurado}"
+          NEXT_PUBLIC_CK_API_URI="http://${IP_GATEWAY}/api/"
+          NEXT_PUBLIC_USER_CONTROLLER_API_URI="$USER_CONTROLLER_API_URI"
+
+          : "${IP_GATEWAY:?Secret IP_GATEWAY nao configurado}"
           : "${NEXT_PUBLIC_USER_CONTROLLER_API_URI:?Secret USER_CONTROLLER_API_URI nao configurado}"
+          echo "USER_CONTROLLER_API_URI carregada como secret."
 
           docker build \
             -f applications/frontend/Dockerfile \
