@@ -84,12 +84,22 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keygen -y -f ~/.ssh/id_rsa > /dev/null
 
-      - name: Configurar IP do frontend
-        working-directory: ansible
-        run: sed -i "s/IP_FRONTEND/${{ secrets.IP_FRONTEND }}/g" hosts.ini
-
-      - name: Executar deploy
+      - name: Configurar IPs do frontend
         working-directory: ansible
         run: |
-          ansible-playbook playbooks/deploy-docker.yml \
-            --extra-vars "frontend_image=${{ inputs.frontend_image }}"
+          sed -i "s/IP_FRONTEND_PROD/${{ secrets.IP_FRONTEND_PROD }}/g" hosts.ini
+          sed -i "s/IP_FRONTEND_HOMOLOG/${{ secrets.IP_FRONTEND_HOMOLOG }}/g" hosts.ini
+
+      - name: Deploy do frontend de homolog
+        working-directory: ansible
+        run: |
+          ansible-playbook playbooks/deploy-frontend.yml \
+            --limit frontend_homolog \
+            --extra-vars "frontend_image=${{ inputs.frontend_image }} gateway_public_ip=${{ secrets.IP_GATEWAY }}"
+
+      - name: Deploy do frontend de prod
+        working-directory: ansible
+        run: |
+          ansible-playbook playbooks/deploy-frontend.yml \
+            --limit frontend_prod \
+            --extra-vars "frontend_image=${{ inputs.frontend_image }} gateway_public_ip=${{ secrets.IP_GATEWAY }}"

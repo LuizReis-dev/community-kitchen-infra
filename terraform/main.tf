@@ -53,6 +53,16 @@ output "ip_privado_frontend" {
   value       = module.compute.ip_privado_frontend
 }
 
+output "ip_publico_frontend_homolog" {
+  description = "IP publico da VM do frontend de homolog"
+  value       = module.compute.ip_publico_frontend_homolog
+}
+
+output "ip_privado_frontend_homolog" {
+  description = "IP privado da VM do frontend de homolog"
+  value       = module.compute.ip_privado_frontend_homolog
+}
+
 output "ip_publico_gateway" {
   description = "IP publico da VM do Kong Gateway"
   value       = module.compute.ip_publico_gateway

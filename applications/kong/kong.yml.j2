@@ -22,3 +22,11 @@ services:
         paths:
           - /
         strip_path: false
+
+  - name: frontend-homolog
+    url: http://{{ frontend_homolog_upstream_host }}:80
+    routes:
+      - name: frontend-homolog-root
+        paths:
+          - /homolog
+        strip_path: false

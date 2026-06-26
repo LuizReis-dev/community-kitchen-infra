@@ -168,7 +168,38 @@ resource "aws_instance" "frontend" {
   }
 
   tags = {
-    Name = "${var.project_name}-frontend-vm"
+    Name = "${var.project_name}-frontend-prod-vm"
+  }
+}
+
+resource "aws_instance" "frontend_homolog" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.subnet.id
+  vpc_security_group_ids      = [aws_security_group.frontend.id]
+  key_name                    = aws_key_pair.ssh.key_name
+  associate_public_ip_address = true
+
+  user_data_replace_on_change = true
+  user_data                   = <<-EOF
+    #cloud-config
+    users:
+      - default
+      - name: ${var.admin_username}
+        groups: sudo
+        shell: /bin/bash
+        sudo: ALL=(ALL) NOPASSWD:ALL
+        ssh_authorized_keys:
+          - ${trimspace(file(var.ssh_public_key_path))}
+  EOF
+
+  root_block_device {
+    volume_size = 30
+    volume_type = "gp3"
+  }
+
+  tags = {
+    Name = "${var.project_name}-frontend-homolog-vm"
   }
 }
 
@@ -210,7 +241,18 @@ resource "aws_eip" "frontend" {
   depends_on = [aws_internet_gateway.igw]
 
   tags = {
-    Name = "${var.project_name}-frontend-ip"
+    Name = "${var.project_name}-frontend-prod-ip"
+  }
+}
+
+resource "aws_eip" "frontend_homolog" {
+  domain   = "vpc"
+  instance = aws_instance.frontend_homolog.id
+
+  depends_on = [aws_internet_gateway.igw]
+
+  tags = {
+    Name = "${var.project_name}-frontend-homolog-ip"
   }
 }
 

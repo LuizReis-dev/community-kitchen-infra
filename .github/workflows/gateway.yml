@@ -34,7 +34,8 @@ jobs:
         working-directory: ansible
         run: |
           sed -i "s/IP_GATEWAY/${{ secrets.IP_GATEWAY }}/g" hosts.ini
-          sed -i "s/IP_FRONTEND_PRIVATE/${{ secrets.IP_FRONTEND_PRIVATE }}/g" hosts.ini
+          sed -i "s/IP_FRONTEND_PROD_PRIVATE/${{ secrets.IP_FRONTEND_PROD_PRIVATE }}/g" hosts.ini
+          sed -i "s/IP_FRONTEND_HOMOLOG_PRIVATE/${{ secrets.IP_FRONTEND_HOMOLOG_PRIVATE }}/g" hosts.ini
           sed -i "s/API_UPSTREAM_HOST/${{ secrets.API_UPSTREAM_HOST }}/g" hosts.ini
 
       - name: Executar deploy
