@@ -73,3 +73,24 @@ spec:
                 secretKeyRef:
                   name: community-kitchen-postgres-secret
                   key: POSTGRES_PASSWORD
+            - name: REMOTE_TOKEN_VALIDATOR_URL
+              valueFrom:
+                secretKeyRef:
+                  name: community-kitchen-api-secret
+                  key: REMOTE_TOKEN_VALIDATOR_URL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3

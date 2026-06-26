@@ -46,6 +46,15 @@
     - name: Baixar imagem do Kong
       command: "docker pull {{ kong_image }}"
 
+    - name: Validar configuracao do Kong
+      command: >
+        docker run --rm
+        -e KONG_DATABASE=off
+        -e KONG_DECLARATIVE_CONFIG=/kong/declarative/kong.yml
+        -v {{ kong_config_dir }}/kong.yml:/kong/declarative/kong.yml:ro
+        {{ kong_image }}
+        kong check /kong/declarative/kong.yml
+
     - name: Remover container antigo
       command: "docker rm -f {{ container_name }}"
       ignore_errors: true
@@ -56,11 +65,23 @@
         --name {{ container_name }}
         --restart unless-stopped
         -p 80:8000
+        -p 127.0.0.1:8100:8100
         -e KONG_DATABASE=off
         -e KONG_DECLARATIVE_CONFIG=/kong/declarative/kong.yml
+        -e KONG_STATUS_LISTEN=0.0.0.0:8100
         -e KONG_PROXY_ACCESS_LOG=/dev/stdout
         -e KONG_ADMIN_ACCESS_LOG=/dev/stdout
         -e KONG_PROXY_ERROR_LOG=/dev/stderr
         -e KONG_ADMIN_ERROR_LOG=/dev/stderr
         -v {{ kong_config_dir }}/kong.yml:/kong/declarative/kong.yml:ro
         {{ kong_image }}
+
+    - name: Aguardar Kong responder
+      uri:
+        url: http://127.0.0.1:8100/status
+        status_code: 200
+        timeout: 5
+      register: kong_healthcheck
+      retries: 12
+      delay: 5
+      until: kong_healthcheck is succeeded

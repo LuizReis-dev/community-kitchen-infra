@@ -20,5 +20,5 @@ services:
     routes:
       - name: frontend-root
         paths:
-          - /
+          - ~/(?!api(?:/|$)|homolog/api(?:/|$)).*
         strip_path: false

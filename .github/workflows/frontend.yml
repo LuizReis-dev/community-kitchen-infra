@@ -91,5 +91,5 @@ jobs:
       - name: Executar deploy
         working-directory: ansible
         run: |
-          ansible-playbook playbooks/deploy-docker.yml \
-            --extra-vars "frontend_image=${{ inputs.frontend_image }}"
+          ansible-playbook playbooks/deploy-frontend.yml \
+            --extra-vars "frontend_image=${{ inputs.frontend_image }} gateway_public_ip=${{ secrets.IP_GATEWAY }} user_controller_api_uri=${{ secrets.USER_CONTROLLER_API_URI }}"

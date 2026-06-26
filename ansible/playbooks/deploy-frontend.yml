@@ -6,6 +6,9 @@
   vars:
     frontend_image: "reisluiz/community-kitchen-frontend:latest"
     container_name: "community-kitchen-frontend"
+    frontend_env_dir: "/opt/community-kitchen/frontend"
+    ck_api_uri: "http://{{ gateway_public_ip }}/api/"
+    user_controller_api_uri: "{{ ck_api_uri }}"
 
   tasks:
     - name: Atualizar cache de pacotes
@@ -26,6 +29,24 @@
         state: started
         enabled: true
 
+    - name: Criar diretorio de configuracao do frontend
+      file:
+        path: "{{ frontend_env_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Gerar .env apontando para o gateway
+      copy:
+        dest: "{{ frontend_env_dir }}/.env"
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          NEXT_PUBLIC_CK_API_URI={{ ck_api_uri }}
+          NEXT_PUBLIC_USER_CONTROLLER_API_URI={{ user_controller_api_uri }}
+
     - name: Baixar imagem do frontend
       command: "docker pull {{ frontend_image }}"
 
@@ -39,4 +60,5 @@
         --name {{ container_name }}
         --restart unless-stopped
         -p 80:5000
+        --env-file {{ frontend_env_dir }}/.env
         {{ frontend_image }}
