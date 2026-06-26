@@ -32,11 +32,16 @@ jobs:
 
       - name: Configurar inventario do gateway
         working-directory: ansible
+        env:
+          IP_GATEWAY: ${{ secrets.IP_GATEWAY }}
+          IP_FRONTEND_PROD_PRIVATE: ${{ secrets.IP_FRONTEND_PROD_PRIVATE }}
+          IP_FRONTEND_HOMOLOG_PRIVATE: ${{ secrets.IP_FRONTEND_HOMOLOG_PRIVATE }}
+          API_UPSTREAM_HOST: ${{ secrets.API_UPSTREAM_HOST }}
         run: |
-          sed -i "s/IP_GATEWAY/${{ secrets.IP_GATEWAY }}/g" hosts.ini
-          sed -i "s/IP_FRONTEND_PROD_PRIVATE/${{ secrets.IP_FRONTEND_PROD_PRIVATE }}/g" hosts.ini
-          sed -i "s/IP_FRONTEND_HOMOLOG_PRIVATE/${{ secrets.IP_FRONTEND_HOMOLOG_PRIVATE }}/g" hosts.ini
-          sed -i "s/API_UPSTREAM_HOST/${{ secrets.API_UPSTREAM_HOST }}/g" hosts.ini
+          perl -0pi -e 's/IP_GATEWAY/$ENV{IP_GATEWAY}/g' hosts.ini
+          perl -0pi -e 's/IP_FRONTEND_PROD_PRIVATE/$ENV{IP_FRONTEND_PROD_PRIVATE}/g' hosts.ini
+          perl -0pi -e 's/IP_FRONTEND_HOMOLOG_PRIVATE/$ENV{IP_FRONTEND_HOMOLOG_PRIVATE}/g' hosts.ini
+          perl -0pi -e 's/API_UPSTREAM_HOST/$ENV{API_UPSTREAM_HOST}/g' hosts.ini
 
       - name: Executar deploy
         working-directory: ansible
