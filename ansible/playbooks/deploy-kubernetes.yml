@@ -73,6 +73,19 @@
         - api_image | length > 0
         - deploy_environment in ["all", "prod"]
 
+    - name: Reiniciar API em prod para recarregar secrets
+      command: >
+        kubectl rollout restart deployment/{{ api_deployment_name }}
+        --namespace prod
+      when: deploy_environment in ["all", "prod"]
+
+    - name: Aguardar rollout da API em prod
+      command: >
+        kubectl rollout status deployment/{{ api_deployment_name }}
+        --namespace prod
+        --timeout={{ rollout_timeout }}
+      when: deploy_environment in ["all", "prod"]
+
     # homolog desativado temporariamente.
     # - name: Atualizar imagem da API em homolog
     #   command: >
