@@ -184,7 +184,6 @@ jobs:
     name: Validar frontend publicado com OWASP ZAP
     runs-on: ubuntu-latest
     needs: deploy
-    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Executar baseline ZAP no gateway
