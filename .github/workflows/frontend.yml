@@ -32,10 +32,74 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-  push-image:
-    name: Push imagem Docker
+  sonar:
+    name: Analise de qualidade do frontend
     runs-on: ubuntu-latest
     needs: build
+
+    steps:
+      - name: Checkout frontend
+        uses: actions/checkout@v5
+        with:
+          repository: Lucas-Cast/community-kitchen-portal
+          path: frontend
+          fetch-depth: 0
+
+      - name: Iniciar SonarQube local
+        run: |
+          sudo sysctl -w vm.max_map_count=262144
+          docker run -d --name sonarqube -p 9000:9000 sonarqube:lts-community
+
+          for i in {1..60}; do
+            if curl -fsS http://localhost:9000/api/system/status | grep -q '"status":"UP"'; then
+              exit 0
+            fi
+            sleep 5
+          done
+
+          docker logs sonarqube
+          exit 1
+
+      - name: Gerar token temporario de analise
+        run: |
+          SONAR_PASSWORD='Admin12345!'
+
+          curl -fsS -u admin:admin -X POST http://localhost:9000/api/users/change_password \
+            -d "login=admin" \
+            -d "previousPassword=admin" \
+            -d "password=${SONAR_PASSWORD}"
+
+          SONAR_TOKEN=$(curl -fsS -u "admin:${SONAR_PASSWORD}" -X POST http://localhost:9000/api/user_tokens/generate \
+            -d "name=github-actions-${GITHUB_RUN_ID}" | sed -E 's/.*"token":"([^"]+)".*/\1/')
+
+          echo "SONAR_TOKEN=${SONAR_TOKEN}" >> "$GITHUB_ENV"
+
+      - name: Analisar codigo do frontend
+        uses: SonarSource/sonarqube-scan-action@v6
+        with:
+          projectBaseDir: frontend
+          args: >
+            -Dsonar.projectKey=community-kitchen-frontend
+            -Dsonar.projectName="Community Kitchen Frontend"
+            -Dsonar.sources=src
+            -Dsonar.exclusions=.next/**,node_modules/**,coverage/**
+        env:
+          SONAR_HOST_URL: http://localhost:9000
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+
+      - name: Validar gate de qualidade do frontend
+        uses: sonarsource/sonarqube-quality-gate-action@v1.2.0
+        timeout-minutes: 5
+        with:
+          scanMetadataReportFile: frontend/.scannerwork/report-task.txt
+        env:
+          SONAR_HOST_URL: http://localhost:9000
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+
+  push-image:
+    name: Empacotar e publicar frontend
+    runs-on: ubuntu-latest
+    needs: [build, sonar]
 
     steps:
       - name: Checkout infra
@@ -71,6 +135,16 @@ jobs:
             --build-arg NEXT_PUBLIC_USER_CONTROLLER_API_URI="$NEXT_PUBLIC_USER_CONTROLLER_API_URI" \
             -t "${{ inputs.frontend_image }}" \
             frontend
+
+      - name: Verificar vulnerabilidades da imagem frontend
+        uses: aquasecurity/trivy-action@0.35.0
+        with:
+          image-ref: ${{ inputs.frontend_image }}
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
 
       - name: Push da imagem no Docker Hub
         run: docker push "${{ inputs.frontend_image }}"
